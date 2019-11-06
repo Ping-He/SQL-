@@ -1,0 +1,28 @@
+表名：tracking_log  
+字段名：log_id,log_time,user_id,opr_type(操作类型) ----- abcde
+
+1)分天、分opr_type的用户数
+2）分天，满足a→b的用户数(先操作a再操作b)
+
+
+1)
+select to_date(log_time),opr_type,count(distinct user_id) as user_num
+from tracking_log
+group by to_date(log_time),opr_type
+order by to_date(log_time),opr_type
+
+2)
+--  创建临时表(假设数据仓库有temp层)
+create table temp.tmp_add_flag as
+select user_id,to_date(log_time) as log_date,row_number() over(partition by logtime order by user_id) as flag
+from tracking_log ;
+
+select t1.log_date,count(distinct user_id)
+from
+tmp.tmp_add_flag t1
+join tmp.tmp_add_flag  t2
+on t1.user_id = t2.user_id
+where type1 = 'a' and type2 = 'b'
+      and t1.flag + 1 = t2.flag
+group by t1.log_date;
+
