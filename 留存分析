@@ -1,0 +1,41 @@
+统计需求1：2020-01-10 至 2020-01-14 每天男性播放用户、女性播放用户的第7日留存
+---------------------------------------------------------------------
+表1：播放日志
+表名：play
+字段：
+device_id string  --设备号，是用户的唯一标识
+stime string  --播放时间
+albume_id string   --专辑id，是专辑的唯一标识
+vv int  --播放vv          
+dt string  --日期
+---------------------------------------------------------------------
+表2：用户属性表
+表名：user_info
+字段：
+device_id string  --设备号，是用户的唯一标识
+gender string  --性别
+---------------------------------------------------------------------
+
+
+-- 创建临时表   也可以用 with play_user_info as  不加分号
+create temp.play_user_info as
+select a.device_id,a.dt,b.gender
+from play a
+left join user_info b
+on a.device_id = b.device_id
+where dt >='2020-01-10' and dt <= '2020-01-21'
+;
+
+-- 计算
+select *, 
+concat(round(100 * seven_liucun_num /act_user_num, 2), '%')  --保留两位小数
+from (
+select a.dt,
+       gender,
+       count(distinct a.uid) as act_user_num    -- 活跃用户数,
+       count(distinct b.uid) as seven_liucun_num    -- 七日留存用户数
+from temp.play_user_info a
+left join temp.play_user_info b on a.device_id = b.device_id and b.dt = a.dt + 7
+group by dt,gender
+where dt >='2020-01-10' and dt <= '2020-01-14'
+)t1
