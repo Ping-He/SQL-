@@ -14,8 +14,9 @@ order by to_date(log_time),opr_type
 2)
 --  创建临时表(假设数据仓库有temp层)
 create table temp.tmp_add_flag as
-select user_id,to_date(log_time) as log_date,row_number() over(partition by logtime order by user_id) as flag
+select user_id,to_date(log_time) as log_date,opr_type,row_number() over(partition by logtime order by user_id) as flag
 from tracking_log ;
+
 
 select t1.log_date,count(distinct user_id)
 from
@@ -26,3 +27,5 @@ where type1 = 'a' and type2 = 'b'
       and t1.flag + 1 = t2.flag
 group by t1.log_date;
 
+拼多多学霸批笔试题  可以看到原题
+https://blog.csdn.net/weixin_44915703/article/details/99414226
